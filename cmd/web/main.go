@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fabiobap/go-bnb/config"
-	"github.com/fabiobap/go-bnb/pkg/handlers"
-	"github.com/fabiobap/go-bnb/pkg/render"
+	"github.com/fabiobap/go-bnb/internal/config"
+	"github.com/fabiobap/go-bnb/internal/handlers"
+	"github.com/fabiobap/go-bnb/internal/render"
 
 	"github.com/alexedwards/scs/v2"
 )

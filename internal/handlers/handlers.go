@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fabiobap/go-bnb/config"
-	"github.com/fabiobap/go-bnb/models"
-	"github.com/fabiobap/go-bnb/pkg/render"
+	"github.com/fabiobap/go-bnb/internal/config"
+	"github.com/fabiobap/go-bnb/internal/models"
+	"github.com/fabiobap/go-bnb/internal/render"
 )
 
 var Repo *Repository
