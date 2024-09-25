@@ -7,21 +7,26 @@ import (
 	"net/http"
 
 	"github.com/fabiobap/go-bnb/internal/config"
+	"github.com/fabiobap/go-bnb/internal/driver"
 	"github.com/fabiobap/go-bnb/internal/forms"
 	"github.com/fabiobap/go-bnb/internal/helpers"
 	"github.com/fabiobap/go-bnb/internal/models"
 	"github.com/fabiobap/go-bnb/internal/render"
+	"github.com/fabiobap/go-bnb/internal/repository"
+	"github.com/fabiobap/go-bnb/internal/repository/dbrepo"
 )
 
 var Repo *Repository
 
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
-func NewRepo(ac *config.AppConfig) *Repository {
+func NewRepo(ac *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: ac,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, ac),
 	}
 }
 
