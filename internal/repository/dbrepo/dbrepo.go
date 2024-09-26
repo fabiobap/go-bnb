@@ -7,13 +7,13 @@ import (
 	"github.com/fabiobap/go-bnb/internal/repository"
 )
 
-type postgrsDBRepo struct {
+type postgresDBRepo struct {
 	App *config.AppConfig
 	DB  *sql.DB
 }
 
 func NewPostgresRepo(conn *sql.DB, a *config.AppConfig) repository.DatabaseRepo {
-	return &postgrsDBRepo{
+	return &postgresDBRepo{
 		App: a,
 		DB:  conn,
 	}
