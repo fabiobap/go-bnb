@@ -5,7 +5,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/fabiobap/go-bnb/internal/models"
 )
@@ -130,6 +133,98 @@ func TestRepository_ReservationNotFindRoomID(t *testing.T) {
 
 	if rr.Code != http.StatusTemporaryRedirect {
 		t.Errorf("Reservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_PostReservation(t *testing.T) {
+	layout := "2006-01-02"
+	sd, _ := time.Parse(layout, "2021-01-02")
+	ed, _ := time.Parse(layout, "2021-01-03")
+	reservation := models.Reservation{
+		RoomID:    1,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		},
+	}
+
+	postedData := url.Values{}
+	postedData.Add("first_name", "Anshuman")
+	postedData.Add("last_name", "Lawania")
+	postedData.Add("email", "71anshuman@gmail.com")
+	postedData.Add("phone", "9718594945")
+	postedData.Add("room_id", "1")
+
+	req, _ := http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	session.Put(ctx, "reservation", reservation)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusSeeOther)
+	}
+}
+
+func TestRepository_PostReservationMissingFormBody(t *testing.T) {
+	layout := "2006-01-02"
+	sd, _ := time.Parse(layout, "2021-01-02")
+	ed, _ := time.Parse(layout, "2021-01-03")
+	reservation := models.Reservation{
+		RoomID:    1,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		},
+	}
+
+	req, _ := http.NewRequest("POST", "/make-reservation", nil)
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	session.Put(ctx, "reservation", reservation)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_PostReservationWithouReservationOnSession(t *testing.T) {
+
+	req, _ := http.NewRequest("POST", "/make-reservation", nil)
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
 	}
 }
 
