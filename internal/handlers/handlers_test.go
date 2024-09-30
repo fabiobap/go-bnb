@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/fabiobap/go-bnb/internal/models"
@@ -20,15 +19,14 @@ var theTests = []struct {
 	name               string
 	url                string
 	method             string
-	params             []postData
 	expectedStatusCode int
 }{
-	// {"home", "/", "GET", []postData{}, http.StatusOK},
-	// {"about", "/about", "GET", []postData{}, http.StatusOK},
-	// {"generals-quarters", "/generals-quarters", "GET", []postData{}, http.StatusOK},
-	// {"majors-suite", "/majors-suite", "GET", []postData{}, http.StatusOK},
-	// {"search-availability", "/search-availability", "GET", []postData{}, http.StatusOK},
-	// {"contact", "/contact", "GET", []postData{}, http.StatusOK},
+	{"home", "/", "GET", http.StatusOK},
+	{"about", "/about", "GET", http.StatusOK},
+	{"generals-quarters", "/generals-quarters", "GET", http.StatusOK},
+	{"majors-suite", "/majors-suite", "GET", http.StatusOK},
+	{"search-availability", "/search-availability", "GET", http.StatusOK},
+	{"contact", "/contact", "GET", http.StatusOK},
 	// {"make-res", "/make-reservation", "GET", []postData{}, http.StatusOK},
 	// {"sa-post", "/search-availability", "POST", []postData{
 	// 	{key: "start", value: "2024-04-04"},
@@ -53,30 +51,13 @@ func TestHandlers(t *testing.T) {
 	defer ts.Close()
 
 	for _, e := range theTests {
-		if e.method == "GET" {
-			resp, err := ts.Client().Get(ts.URL + e.url)
-			if err != nil {
-				t.Log(err)
-				t.Fatal(err)
-			}
-			if resp.StatusCode != e.expectedStatusCode {
-				t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
-			}
-		} else {
-			values := url.Values{}
-
-			for _, x := range e.params {
-				values.Add(x.key, x.value)
-			}
-
-			resp, err := ts.Client().PostForm(ts.URL+e.url, values)
-			if err != nil {
-				t.Log(err)
-				t.Fatal(err)
-			}
-			if resp.StatusCode != e.expectedStatusCode {
-				t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
-			}
+		resp, err := ts.Client().Get(ts.URL + e.url)
+		if err != nil {
+			t.Log(err)
+			t.Fatal(err)
+		}
+		if resp.StatusCode != e.expectedStatusCode {
+			t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
 		}
 	}
 }
