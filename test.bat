@@ -1,0 +1,1 @@
+go test -coverprofile=fish && go tool cover -html=fish
