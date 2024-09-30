@@ -228,6 +228,128 @@ func TestRepository_PostReservationWithouReservationOnSession(t *testing.T) {
 	}
 }
 
+func TestRepository_PostReservationFormIsInvalid(t *testing.T) {
+	layout := "2006-01-02"
+	sd, _ := time.Parse(layout, "2021-01-02")
+	ed, _ := time.Parse(layout, "2021-01-03")
+	reservation := models.Reservation{
+		RoomID:    1,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		},
+	}
+
+	postedData := url.Values{}
+	postedData.Add("first_name", "a")
+	postedData.Add("last_name", "2")
+	postedData.Add("room_id", "1")
+
+	req, _ := http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	session.Put(ctx, "reservation", reservation)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusOK)
+	}
+}
+
+func TestRepository_PostReservationUnableToInsertNewReservation(t *testing.T) {
+	layout := "2006-01-02"
+	sd, _ := time.Parse(layout, "2021-01-02")
+	ed, _ := time.Parse(layout, "2021-01-03")
+
+	reservation := models.Reservation{
+		RoomID:    1,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		},
+	}
+
+	postedData := url.Values{}
+	postedData.Add("first_name", "Anshuman")
+	postedData.Add("last_name", "Lawania")
+	postedData.Add("email", "71anshuman@gmail.com")
+	postedData.Add("phone", "7891424299")
+	postedData.Add("room_id", "2")
+
+	req, _ := http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	reservation.RoomID = 2
+	session.Put(ctx, "reservation", reservation)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_PostReservationUnableToInsertNewRoomRestriction(t *testing.T) {
+	layout := "2006-01-02"
+	sd, _ := time.Parse(layout, "2021-01-02")
+	ed, _ := time.Parse(layout, "2021-01-03")
+
+	reservation := models.Reservation{
+		RoomID:    1,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		},
+	}
+
+	postedData := url.Values{}
+	postedData.Add("first_name", "Anshuman")
+	postedData.Add("last_name", "Lawania")
+	postedData.Add("email", "71anshuman@gmail.com")
+	postedData.Add("phone", "7891424299")
+	postedData.Add("room_id", "2")
+
+	req, _ := http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	reservation.RoomID = 1000
+	session.Put(ctx, "reservation", reservation)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	//fakes response
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostReservation)
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned wrong response code: got %d, wanted %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
 func getCtx(req *http.Request) context.Context {
 	ctx, err := session.Load(req.Context(), req.Header.Get("X-Session"))
 
