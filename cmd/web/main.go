@@ -11,6 +11,7 @@ import (
 	"github.com/fabiobap/go-bnb/internal/config"
 	"github.com/fabiobap/go-bnb/internal/driver"
 	"github.com/fabiobap/go-bnb/internal/handlers"
+	"github.com/fabiobap/go-bnb/internal/helpers"
 	"github.com/fabiobap/go-bnb/internal/models"
 	"github.com/fabiobap/go-bnb/internal/render"
 
@@ -94,6 +95,7 @@ func run() (*driver.DB, error) {
 
 	handlers.NewHandlers(repo)
 	render.NewRenderer(&app)
+	helpers.NewHelpers(&app)
 
 	return db, nil
 }
