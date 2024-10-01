@@ -25,13 +25,16 @@ var infoLog *log.Logger
 var errorLog *log.Logger
 
 func main() {
-
 	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer db.SQL.Close()
+
+	defer close(app.MailChan)
+	fmt.Printf("Starting email listener")
+	listenForEmail()
 
 	fmt.Printf("Starting application on port: %s", HTTP_PORT)
 
@@ -49,6 +52,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.RoomRestriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	app.InProduction = false
 

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/fabiobap/go-bnb/internal/models"
 )
 
 // holds application cache
@@ -15,4 +16,5 @@ type AppConfig struct {
 	Session       *scs.SessionManager
 	InfoLog       *log.Logger
 	ErrorLog      *log.Logger
+	MailChan      chan models.MailData
 }
