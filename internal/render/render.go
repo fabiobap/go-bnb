@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/fabiobap/go-bnb/internal/config"
 	"github.com/fabiobap/go-bnb/internal/models"
@@ -16,10 +17,16 @@ import (
 
 var app *config.AppConfig
 var pathToTemplates = "./templates"
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanDate": HumanDate,
+}
 
 func NewRenderer(ac *config.AppConfig) {
 	app = ac
+}
+
+func HumanDate(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
