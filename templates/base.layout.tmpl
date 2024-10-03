@@ -167,17 +167,17 @@
             })
         }
 
-        { { with .Error} }
+        {{ with .Error}}
         notify("{{.}}", "error")
-        { { end } }
+        {{ end }}
 
-        { { with .FlashMessage} }
+        {{ with .FlashMessage}}
         notify("{{.}}", "success")
-        { { end } }
+        {{ end }}
 
-        { { with .Warning} }
+        {{ with .Warning}}
         notify("{{.}}", "warning")
-        { { end } }
+        {{ end }}
     </script>
 
 </body>
