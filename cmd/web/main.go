@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/fabiobap/go-bnb/internal/config"
@@ -14,6 +15,7 @@ import (
 	"github.com/fabiobap/go-bnb/internal/helpers"
 	"github.com/fabiobap/go-bnb/internal/models"
 	"github.com/fabiobap/go-bnb/internal/render"
+	"github.com/joho/godotenv"
 
 	"github.com/alexedwards/scs/v2"
 )
@@ -49,16 +51,21 @@ func main() {
 }
 
 func run() (*driver.DB, error) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	gob.Register(models.Reservation{})
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.RoomRestriction{})
 	gob.Register(map[string]int{})
 
+	loadVariables()
+
 	mailChan := make(chan models.MailData)
 	app.MailChan = mailChan
-
-	app.InProduction = false
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
@@ -75,7 +82,20 @@ func run() (*driver.DB, error) {
 	app.Session = session
 
 	log.Println("Connecting to database...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=postgres password=r00tzer")
+
+	var dbCreds = models.DBData{}
+	setDBData(&dbCreds)
+
+	connectionString := fmt.Sprintf(
+		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
+		dbCreds.DBHost,
+		dbCreds.DBPort,
+		dbCreds.DBName,
+		dbCreds.DBUser,
+		dbCreds.DBPass,
+		dbCreds.DBSSL)
+
+	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 	}
@@ -90,7 +110,6 @@ func run() (*driver.DB, error) {
 	}
 
 	app.TemplateCache = tc
-	app.UseCache = false
 
 	repo := handlers.NewRepo(&app, db)
 
@@ -99,4 +118,66 @@ func run() (*driver.DB, error) {
 	helpers.NewHelpers(&app)
 
 	return db, nil
+}
+
+func loadVariables() {
+	isProductionStr := os.Getenv("IS_PRODUCTION")
+	if isProductionStr == "" {
+		isProductionStr = "false"
+	}
+
+	isProduction, err := strconv.ParseBool(isProductionStr)
+	if err != nil {
+		log.Fatalf("Error converting IS_PRODUCTION key to bool: %v", err)
+	}
+
+	app.InProduction = isProduction
+
+	useCacheStr := os.Getenv("USE_CACHE")
+	if useCacheStr == "" {
+		useCacheStr = "false"
+	}
+
+	useCache, err := strconv.ParseBool(useCacheStr)
+	if err != nil {
+		log.Fatalf("Error converting USE_CACHE key to bool: %v", err)
+	}
+
+	app.UseCache = useCache
+}
+
+func setDBData(db *models.DBData) {
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "bookings"
+	}
+
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "postgres"
+	}
+
+	dbPass := os.Getenv("DB_PASSWORD")
+
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
+	}
+
+	dbSSL := os.Getenv("DB_SSL")
+	if dbSSL == "" {
+		dbSSL = "disable"
+	}
+
+	db.DBHost = dbHost
+	db.DBName = dbName
+	db.DBUser = dbUser
+	db.DBPass = dbPass
+	db.DBPort = dbPort
+	db.DBSSL = dbSSL
 }

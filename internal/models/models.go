@@ -65,3 +65,12 @@ type MailData struct {
 	Content  string
 	Template string
 }
+
+type DBData struct {
+	DBHost string
+	DBName string
+	DBUser string
+	DBPass string
+	DBPort string
+	DBSSL  string
+}
